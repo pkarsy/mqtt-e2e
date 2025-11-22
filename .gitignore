@@ -1,0 +1,3 @@
+*.snapshot
+.packages
+.vscode/settings.json   # if it contains personal paths

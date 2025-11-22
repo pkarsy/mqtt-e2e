@@ -1,0 +1,21 @@
+sdk: ^2.0.0-alpha.188.1
+prefixes:
+  host: pkg-host
+  mqtt: mqtt
+  ntp: pkg-ntp
+packages:
+  mqtt:
+    url: github.com/toitware/mqtt
+    name: mqtt
+    version: 2.13.1
+    hash: ac50d868a578c45003956da66075be5158a78c7a
+  pkg-host:
+    url: github.com/toitlang/pkg-host
+    name: host
+    version: 1.17.0
+    hash: 05a26b5fa1cc73dc64a5e9cc16c40ae5aa24e0fb
+  pkg-ntp:
+    url: github.com/toitlang/pkg-ntp
+    name: ntp
+    version: 1.1.0
+    hash: e69bb1abc0d3d4aa7642eec3360e52744e4d011d
