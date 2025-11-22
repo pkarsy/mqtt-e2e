@@ -201,6 +201,7 @@ class MqttE2E:
       --subscribe-suffix/string
       --mqtt-comm/MqttComm?=null
       --logger/log.Logger=log.default
+      --max-size/int=1000 // TODO
       :
     logger_ = logger
     if key.size != 16:

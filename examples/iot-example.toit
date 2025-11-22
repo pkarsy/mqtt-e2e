@@ -1,10 +1,6 @@
-// edit "shared.toit" and put a unique 16-byte key
-
-// Use of this source code is governed by a Zero-Clause BSD license that can
-// be found in the examples/LICENSE file.
 
 import mqtt-e2e show ntp-time MqttE2E
-import .shared //show key pad-size
+import .shared
 import monitor
 import system
 import log
@@ -28,6 +24,8 @@ main:
       // --max-send-size
       // max-rcv-size
       // warn-size TODO
+  //
+  log.debug "You cannot type commands here, only in controller"
   //
   ch ::= monitor.Channel 5
   //
