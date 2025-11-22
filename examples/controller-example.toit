@@ -1,4 +1,4 @@
-import ..mqtt-e2e
+import mqtt-e2e show MqttE2E
 import .shared
 import host.os
 import host.pipe

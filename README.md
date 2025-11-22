@@ -4,7 +4,7 @@
 Zero-config, broker-agnostic, end-to-end encrypted MQTT for Toit.
 
 > **Security in a nutshell**
-> - Every payload is encrypted with AES-256-GCM **before** publish.
+> - Every payload is encrypted with AES-128-GCM **before** publish.
 ! - Each message carries a **monotonically increasing nonce + UTC timestamp**; duplicates are rejected.
 > - **fixed-length padding** (default is 50 bytes) hides the real size.
 > - No TLS, no broker password, no certificates – the broker sees only random bytes.

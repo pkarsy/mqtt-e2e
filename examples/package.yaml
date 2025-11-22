@@ -1,0 +1,6 @@
+dependencies:
+  host:
+    url: github.com/toitlang/pkg-host
+    version: ^1.17.0
+  mqtt-e2e:
+    path: ..

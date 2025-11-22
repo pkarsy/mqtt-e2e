@@ -1,4 +1,4 @@
-import ..mqtt-e2e
+import mqtt-e2e show ntp-time MqttE2E
 import .shared //show key pad-size
 import monitor
 import system
