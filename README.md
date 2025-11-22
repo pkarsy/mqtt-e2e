@@ -10,10 +10,10 @@ Zero-config, broker-agnostic, end-to-end encrypted MQTT for Toit.
 > - No TLS, no broker password, no certificates – the broker sees only random bytes.
 
 ## When you should use this
-- The most important of all, no need to maintain server accounts and certificates. No need to be on the same network to communicate with your IOT devices. The only think 2 modules to be able to communicate effectivelly and securelly is the common 16-byte key.
+- The most important of all, no need to maintain server accounts and certificates. No need to be on the same network to communicate with your IOT devices. The only thing 2 nodes need, to be able to communicate effectivelly and securelly, is the common 16-byte key.
 - Especially effective as a replacement of a terminal. You can send commands to the IOT module and the module replies via the same channel.
 - Rapid IoT prototypes that must use **unknown or untrusted** public brokers.
-- Avoid TLS overhead, certificates mainainance etc.  but still need **strong confidentiality & inntegrity**. The module inrtroduces its own overhead however.
+- Avoid TLS overhead, certificates maintenance etc.  but still need **strong confidentiality & integrity**. The module introduces its own overhead however.
 - IOT units that connect / disconnect frequently so direct TLS connections are not practical.
 
 ## When you should NOT
@@ -70,17 +70,20 @@ The receiver keeps the last 64 nonces in RAM. Messages older than **clock_skew**
 Messages shorter than `pad_size` are padded with random bytes; longer messages are sent as-is.  Choose `pad_size` slightly larger than your largest expected JSON blob.  **Changing pad_size does NOT break compatibility** – receivers auto-detect.
 
 ## Key distribution
-This library does **not** implement key exchange.  You must provision the 32-byte key out-of-band (QR-code, BLE, UIRT, etc.).  Rotate keys by simply creating a new `Session`.
+- The idea is all the nodes share the same source tree so the key is naturally hardcoded in each node. This is the main mechanism for shared secret distribution.
+Of course this is not always the case.
+- The library does **not** implement key exchange.
+You must provision the 16-byte key out-of-band (QR-code, BLE, UART, etc.).
+- Another idea is to use ed25519 to create a shared secret but again is
+not implemented. This method of course works only for point-to-point communication,
+for example for controlling a single device.
+- Generally speaking the shared secret method cannot scale well for a large number of devices.
+For such cases, public key crypto has advantages(but even then there are problems), but also huge complexity penalty, and as I have not use cases for this, not implemented.
 
 ## Performance
 On a 160 MHz ESP32:
 - Encrypt + publish 100 bytes ⌕ 1.8 ms
 - RAM overhead per Session – 1.2 kB
-
-## Road-map / contributions
-- ChaCha20-Poly1305 option for 8-bit MCUs
-- X25519 key agreement helper (optional)
-- Topic wildcard support
 
 ## License
 MIT   – contributions welcome.
