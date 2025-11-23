@@ -32,7 +32,7 @@ Zero-config, broker-agnostic, end-to-end encrypted MQTT for Toit.
 
 ## Install
 ```bash
-jag pkg install github.com/yourname/toit-mqtt-e2e
+jag pkg install github.com/pkarsy/toit-mqtt-e2e
 ```
 
 ## Examples
