@@ -21,6 +21,7 @@ Zero-config, broker-agnostic, end-to-end encrypted MQTT for Toit.
 - You already control a **TLS-enabled** broker and can afford certificates. You have to trust the broker however.
 - You need **Broker-level access control** (topic ACLs)
 - You must hide **traffic-timing** – padding alone is not enough. Again the timing is known to the broker, so you have to trust the broker.
+- The ESP32 modules are exposed to everyone from the Internet to send any packet, and the library has limited testing.
 
 ## Threat model
 | Protected against | NOT protected against |
@@ -31,7 +32,7 @@ Zero-config, broker-agnostic, end-to-end encrypted MQTT for Toit.
 
 ## Install
 ```bash
-toit pkg install github.com/yourname/toit-mqtt-e2e
+jag pkg install github.com/yourname/toit-mqtt-e2e
 ```
 
 ## Examples
@@ -43,9 +44,9 @@ Before running the programs put a **unique** randomly generated key in
 
 - `iot-example.toit` – IOT side. Run it with
 
-  `jag run -d "yourIOT" iot-example.toit`
+  `jag run -d "yourIOT" iot-example.toit -O2`
   You need to have `jag monitor` running to see what's happening.
-  Even easier, also works with `-d host`
+  Also works with `-d host`
 - `controller-example.toit` – command side. Run it with
 
   `jag run -d host controller-example.toit`
@@ -56,20 +57,22 @@ The receiver keeps the last N timestamps(At the moment 1). When 2 messages arriv
 
 
 ## Padding
-Messages shorter than `--pad-size` are padded with random bytes. Longer messages are sent as-is.  Choose `pad-size` slightly larger than your largest expected message/JSON if you want to hide the size of the messages. **Changing pad-size does NOT break compatibility** – receivers auto-detect.
+Messages shorter than `--pad-size` are padded with random bytes. Longer messages are sent as-is.  Choose `pad-size` slightly larger than your largest expected message if you want to hide the size of the messages. **Changing pad-size does NOT break compatibility** – receivers auto-detect.
 
 
 ## Key distribution
 - Usually the nodes share the same source tree so the key is naturally hardcoded in each node. This mechanism does not scale for more than a few devices. In theese cases every IOT(or a few IOTs) must have its own key and the controller can distinguise them using the topic.
 - The library does **not** implement key exchange.
-You must provision the 16-byte key out-of-band (BLE, UART, etc.).
-- Another idea is to use ed25519 to create a shared secret(the key can be derived from this), but again this is not implemented.
+You must provision the 16-byte key out-of-band (BLE, UART, etc). Another idea is to use ed25519 to create a shared secret(the key can be derived from this), but again this is not implemented.
 
 
 ## Performance
 On a 160 MHz ESP32:
 - Encrypt + publish 100 bytes ⌕ 1.8 ms
 - RAM overhead per Session – 1.2 kB
+
+## TODO
+Limit the incoming packet size to protect from large packets. The mqtt brokers even the free, allow for packets that easily fill the limited ESP32 memory.
 
 ## License
 MIT   – contributions welcome.
