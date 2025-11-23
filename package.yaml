@@ -1,9 +1,9 @@
-# mqtt-e2e/package.yaml
-name: mqtt-e2e
+# toit-mqtt-e2e/package.yaml
+name: toit-mqtt-e2e
 description: Zero-conf, broker-agnostic end-to-end encrypted MQTT for Toit.
 version: 0.0.1
 license: MIT
-url: https://github.com/pkarsy/mqtt-e2e
+url: https://github.com/pkarsy/toit-mqtt-e2e
 # list only external packages; TODO !!
 dependencies:
   host:
