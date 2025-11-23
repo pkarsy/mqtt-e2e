@@ -11,8 +11,8 @@ Zero-config, broker-agnostic, end-to-end encrypted MQTT for Toit.
 - No TLS, no account, no broker password, no certificates – the broker sees only random bytes.
 
 ## When you should use this
-- The most important of all, no need to maintain server accounts and certificates. No need to be on the same network to communicate with your IOT devices. The only thing 2 nodes need, to be able to communicate effectivelly and securelly, is the common 16-byte key.
-- Especially effective as a replacement of a terminal. You can send commands to the IOT module and the module replies via the same channel.
+- The most important of all, no need to maintain server accounts and certificates. No need to be on the same network to communicate with your IOT devices. The only thing the 2 nodes need, to be able to communicate effectivelly and securelly, is the common 16-byte key.
+- Especially effective as a replacement of a terminal. You can send commands to the IOT module and the module replies via the same channel. Of course JSON messages are also very IOT friently.
 - Rapid IoT prototypes that must use **unknown or untrusted** public brokers.
 - Avoid TLS overhead, certificates maintenance etc.  but still need **strong confidentiality & integrity**. The module introduces its own overhead however.
 - IOT units that connect / disconnect frequently so direct TLS connections are not practical.
@@ -68,11 +68,14 @@ You must provision the 16-byte key out-of-band (BLE, UART, etc). Another idea is
 
 ## Performance
 On a 160 MHz ESP32:
-- Encrypt + publish 100 bytes ⌕ 1.8 ms
-- RAM overhead per Session – 1.2 kB
+- Encrypt + publish 100 bytes ~2ms
+- RAM overhead per Session  TODO
 
 ## TODO
 Limit the incoming packet size to protect from large packets. The mqtt brokers even the free, allow for packets that easily fill the limited ESP32 memory.
 
 ## License
-MIT   – contributions welcome.
+MIT – contributions welcome.
+
+## Disclaimer
+Any information leakage, cannot be blamed to the author see the MIT licence.
