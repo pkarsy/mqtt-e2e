@@ -1,29 +1,4 @@
-/* 
-mqtt-comm is based on top of mqtt package and offers some specialized functionality for easy
-communication between IOT modules and the controller/logger
-
-- mqtt-term : allows to "print" messages on any mqtt server. It can also
-  receive messages/commands and pass it to the application
-
-
--mqtt-e2e : Should be used with on OPEN, no
-  credentials, no TLS encryption mqtt broker. Every packet is encrypted BEFORE transmission
-  and decrypted by the other party (End to End encryption).
-  packets have a timestamp so no message reuse is possible(replay attacks)
-  The AEAD encryption ensures no one can forge a fake message
-  unless they know the key
-  It offers a very easy to use communication platform,
-  without the need to maintain a server account, no need to use certificates, or trust the server's
-  security/confediality
-  The 2 parties can connect and disconnect freely and the communication resumes
-  (The messages are not repeated automatically this is a job of the application)
-  By default pads the messages to specific size(default=50) so the length of the message
-  is not revealed. The pad size should be a little larger than the largest message you exxpect to send
-  Hiding the timing of the messages is a much harder problem and in fact cannot be solved by
-  this library but but the app itself. Hopefully is something very rarelly needed.
-  There is a function however to help on this. It is created as an experiment and may or may not
-  help in this regard. The method send_fake "message" messages-number Duration burst_messages Duration
-*/
+// MIT licence (C) Panagiotis Karagiannis pkarsy-at-gmail-com
 
 import monitor
 import system
@@ -190,6 +165,7 @@ class MqttE2E:
   // replay attacks protection
   last-msg_/Map := {:}
   logger_/log.Logger ::= ?
+  time-window_ ::= ?
   //
   constructor
       --pad-size/int=50
@@ -202,7 +178,9 @@ class MqttE2E:
       --mqtt-comm/MqttComm?=null
       --logger/log.Logger=log.default
       --max-size/int=1000 // TODO
+      --time-window/Duration = (Duration --s=15)
       :
+    time-window_ = time-window
     logger_ = logger
     if key.size != 16:
       throw "The key must be 16 bytes"
@@ -252,7 +230,8 @@ class MqttE2E:
     // logger_.debug "encrypt time = $dt"
     mqtt_.send enc-msg
   
-  send-bogus msg
+  send-bogus msg // TODO a lot of work here
+  // tests the library integrity against bogus/malicious packets
       --time-deviation/bool=false // the packets have future or past timestamp.
       --wrong-key/bool=false // correct topic but wrong key.
       --bogus-size/bool=false // the header contains a size not compatible with the actual packet size.
@@ -302,13 +281,12 @@ class MqttE2E:
       //iv-time-ns := buffer.big-endian.int64 --at=0 TODO all in E2E
       iv-time := (Time.epoch --ns=iv-time-ns)
       time-diff/Duration := iv-time.to Time.now
-      if time-diff > (Duration --s=10):
-        throw "The message is older then 10sec"
-      if time-diff < (Duration --s=-10):
-        throw "The message is coming from the future, 10sec or more"
+      if time-diff > time-window_:
+        throw "The message is older then $time-window_"
+      if time-diff < -time-window_:
+        throw "The message is coming from the future, more than $time-window_"
     clear := decrypt enc.payload
-    // topic := enc.topic
-    // The encryption was valid, otherwise the previous throws
+    // The decryption was valid, otherwise throws
     packet-version := clear[0]
     if packet-version!= PROTOCOL_VERSION:
       throw "Packet version is unknown"
@@ -327,7 +305,6 @@ class MqttE2E:
     encryptor/AesGcm := AesGcm.encryptor key_ iv
     enc-data := encryptor.encrypt data --authenticated-data=auth-data_
     buffer.write enc-data
-    //e := iv + (enc.encrypt data --authenticated-data=auth-data_)
     encryptor.close
     return buffer.bytes
 
@@ -355,8 +332,8 @@ class MqttE2E:
 generate-topic
     --key/ByteArray
     --length/int=12 // no need to be biggger
-    --initial-iv/int='@' // no need to change, mainly for debugging
-    --initial-msg/int='#' // the same
+    --initial-iv/int='@' // do not change
+    --initial-msg/int='#' // do not change
      -> string:
 
   if key.size != 16:

@@ -4,11 +4,11 @@
 ## mqtt-e2e
 Zero-config, broker-agnostic, end-to-end encrypted MQTT for Toit.
 
-> **Security in a nutshell**
-> - Every payload is encrypted with AES-128-GCM **before** publish.
-! - Each message carries a **monotonically increasing nonce + UTC timestamp**; duplicates are rejected.
-> - **fixed-length padding** (default is 50 bytes) hides the real size.
-> - No TLS, no broker password, no certificates – the broker sees only random bytes.
+## Security in a nutshell
+- Every payload is encrypted with AES-128-GCM **before** publish.
+- Each message carries a **monotonically increasing nonce + UTC timestamp**; duplicates are rejected.
+- **fixed-length padding** (default is 50 bytes) hides the real size.
+- No TLS, no account, no broker password, no certificates – the broker sees only random bytes.
 
 ## When you should use this
 - The most important of all, no need to maintain server accounts and certificates. No need to be on the same network to communicate with your IOT devices. The only thing 2 nodes need, to be able to communicate effectivelly and securelly, is the common 16-byte key.
