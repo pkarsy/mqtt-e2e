@@ -13,7 +13,7 @@ import log
 //
 
 main:
-  // You supress the debug messages with
+  // You can supress the debug messages with
   // log.set-default (log.default.with-level log.INFO_LEVEL)
   //
   // Usually you want to put :
@@ -30,6 +30,9 @@ main:
   // With the wrong NTP server you will not see this
   // This enforces the time to be correct before proceed
   print "**** When you see this, the time is correct. *****"
+  print
+  print "UTC Time = $Time.now"
+  print
   print "**** The \"ntp-time\" function is returned ****"
   print "**** but a task is running to adjust the time every 1h****"
   print

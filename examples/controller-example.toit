@@ -15,7 +15,7 @@ main:
   //ntp-time --max-rtt=(Duration --s=10)
   // Now the time is in sync
   m:= MqttE2E
-      --key=encryption-key
+      --key=aes-key
       --host=mqtt-host
       --pad-size=pad-size
       --publish-suffix=controller-suffix

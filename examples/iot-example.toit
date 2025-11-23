@@ -16,7 +16,7 @@ main:
   ntp-time
   //
   m := MqttE2E
-      --key=encryption-key 
+      --key=aes-key 
       --host=mqtt-host
       --pad-size=pad-size
       --publish-suffix="iot/" + module-name
