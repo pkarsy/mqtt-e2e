@@ -27,7 +27,8 @@ main:
   //
   log.debug "You cannot type commands here, only in controller"
   //
-  ch ::= monitor.Channel 5
+  // We use it as a buffer to store messages that scheduled for
+  //ch ::= monitor.Channel 5
   //
   task::
     while true:
@@ -42,16 +43,18 @@ main:
       if cmd == "status":
         log.info "Got \"$cmd\""
         uptime := Duration --us=(Time.monotonic-us - start-time)
-        ch.send "Name=$module-name\nUptime=$uptime\nFreemem = $system.process-stats[system.STATS-INDEX-SYSTEM-FREE-MEMORY]\ntemp=xyz"
+        e:= catch: m.send "Name=$module-name\nUptime=$uptime\nFreemem = $system.process-stats[system.STATS-INDEX-SYSTEM-FREE-MEMORY]\ntemp=xyz"
+        if e: print "Error = $e"
       else if cmd=="ping":
         log.info "Got \"$cmd\", sending pong"
-        ch.send "pong"
+        e:= catch: m.send "pong"
+        if e: print "Error = $e"
       else:
         log.info "Discarding unknown command \"$cmd\""
   //
-  task::
+  /* task::
     while true:
       msg := ch.receive
       // it can throw, so we protect it with a catch
       err := catch: m.send msg
-      if err: print "Error : $err"
+      if err: print "Error : $err" */

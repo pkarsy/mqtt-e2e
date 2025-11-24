@@ -17,36 +17,42 @@ import log
 only when the time is set with relativelly high precision.
 
 Blocks until the first adjustment is ready, then returns
-but spawns a task doing NTP every hour */
+but spawns a task doing NTP periodically */
 ntp-time --logger=log.default
     --refresh/Duration=(Duration --h=1)
     --server/string?=ntp.NTP-DEFAULT-SERVER-HOSTNAME
     --max-rtt/Duration=ntp.NTP-DEFAULT-MAX-RTT
     --port/int=ntp.NTP_DEFAULT_SERVER_PORT
+    --wait-on-error/Duration=(Duration --s=10)
     :
   result/ntp.Result? := null
   s/Lambda := ::
-    //if server:
-    result = ntp.synchronize --server=server --max-rtt=max-rtt --port=port
-    //else:
-    //  result = ntp.synchronize
-    if result:
-      adjust_real_time_clock result.adjustment
-      logger.debug "NTP: adjustement=$result.adjustment"
+    result = null
+    e:= catch:
+      result = ntp.synchronize --server=server --max-rtt=max-rtt --port=port
+    if e:
+      logger.info "ntp-time: $e"
+      result = null
+    else if result == null:
+      logger.info "ntp-time: failed"
     else:
-      logger.info "NTP: synchronization request failed"
-      sleep --ms=5000
-  logger.debug "Waiting for the first NTP adjustment before return"
+      adjust_real_time_clock result.adjustment
+      logger.debug "ntp-time: adjustement=$result.adjustment"
+  logger.debug "ntp-time: Waiting for the first NTP adjustment"
   while true:
     s.call
     if result:
-      logger.debug "Got the first NTP fix, now a task will spawned"
+      logger.debug "ntp-time: Got the first NTP fix, now a task will spawned"
       break
+    sleep wait-on-error
+  // We have the first adjustment and we start a task to handle subsequent adjustments
   task ::
     while true:
       if result:
-        logger.debug "sleep for $refresh before the new NTP query"
+        logger.debug "ntp-time: sleep for $refresh before the next NTP query"
         sleep refresh
+      else:
+        sleep wait-on-error
       s.call
 
 class MqttComm:
@@ -163,7 +169,7 @@ class MqttE2E:
   auth-data_/string ::= ?
   pad-size_ ::= ?
   // replay attacks protection
-  last-msg_/Map := {:}
+  last-msg_/List ::= []
   logger_/log.Logger ::= ?
   time-window_ ::= ?
   //
@@ -216,8 +222,8 @@ class MqttE2E:
     //
     part1/ByteArray := ByteArray (VERSION-FIELD-BYTES + SIZE-FIELD-BYTES)
     part1[0]= PROTOCOL_VERSION
-    part1[1] = part2.size/256 // Big endian
-    part1[2] = part2.size%256 // Big endian
+    part1[1] = part2.size / 256 // Big endian
+    part1[2] = part2.size % 256 // Big endian
     // This is the message size including possible padding
     // does not include Version(1byte) and SizeHeader(2 bytes)
     msg-size/int :=  max part2.size pad-size_
@@ -226,6 +232,7 @@ class MqttE2E:
     part3-size := max 0 (pad-size_ - part2.size)
     data := part1 + part2 + (ByteArray part3-size)
     enc-msg := encrypt Time.now.ns-since-epoch data
+    last-msg_.add enc-msg[0..12] // the message is out, so we cannot receive it again
     // dt := t.to Time.now
     // logger_.debug "encrypt time = $dt"
     mqtt_.send enc-msg
@@ -269,20 +276,18 @@ class MqttE2E:
     if enc==null:
       throw "Got null"
     topic:=enc.topic
-    iv-time-ns/int := 0
+    //iv-time-ns/int := 0
+    iv/ByteArray ::= enc.payload[0..12]
+    if last-msg_.contains iv: // The message is a repeat, we reject it
+        throw "Replay"
     if true:
-      iv/ByteArray := enc.payload[0..12] // TODO 8
+       // TODO 8
       buffer/Buffer := Buffer iv
-      iv-time-ns = buffer.big-endian.int64 --at=0
-      if last-msg_.get enc.topic:
-        prev-time := last-msg_[topic]
-        if prev-time >= iv-time-ns:
-          throw "The previous message has newer/identical timestamp"
-      //iv-time-ns := buffer.big-endian.int64 --at=0 TODO all in E2E
+      iv-time-ns := buffer.big-endian.int64 --at=0
       iv-time := (Time.epoch --ns=iv-time-ns)
       time-diff/Duration := iv-time.to Time.now
       if time-diff > time-window_:
-        throw "The message is older then $time-window_"
+        throw "The message is older than $time-window_"
       if time-diff < -time-window_:
         throw "The message is coming from the future, more than $time-window_"
     clear := decrypt enc.payload
@@ -294,7 +299,9 @@ class MqttE2E:
     packet-data-pad-size := clear.size - SIZE-FIELD-BYTES
     if header-reported-size > packet-data-pad-size:
       throw "The packet is bogus. The header reports size larger than the packet itself"
-    last-msg_[topic] = iv-time-ns
+    last-msg_.add iv // for replay attacks
+    if last-msg_.size>10: // TODO configurable
+      last-msg_.remove --at=0
     return [topic, clear[3 .. header-reported-size + 3] ]
   
   encrypt ns-since-epoch/int data/ByteArray -> ByteArray:

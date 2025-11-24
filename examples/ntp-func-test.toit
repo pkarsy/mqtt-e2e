@@ -25,11 +25,11 @@ main:
   ntp-time
   // try theese :
   // --refresh=(Duration --s=15) to see the operation fast-forward
-  // --server="10.11.12.13" // the query will fail with this, blocking the app
+  // --server="10.11.12.13" // to force a query fail, and see the app blocking.
   //
   // With the wrong NTP server you will not see this
   // This enforces the time to be correct before proceed
-  print "**** When you see this, the time is correct. *****"
+  print "**** If you can see this, the time is correct. *****"
   print
   print "UTC Time = $Time.now"
   print
